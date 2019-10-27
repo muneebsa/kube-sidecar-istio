@@ -1,0 +1,30 @@
+# How to test
+# kubectl apply -f pod.yaml
+# kubectl exec sidecar-demo -c sidecar -it bash
+# curl 'http://localhost:80/app.txt'
+apiVersion: v1
+kind: Pod
+metadata:
+  name: sidecar-demo
+spec:
+  volumes:
+  - name: shared-logs 
+    emptyDir: {}
+
+  containers:
+  - name: app
+    image: alpine 
+    command: ["/bin/sh"]
+    args: ["-c", "while true; do date >> /var/log/app.txt; sleep 5;done"]
+    volumeMounts:
+    - name: shared-logs
+      mountPath: /var/log
+
+  - name: sidecar
+    image: ewoutp/docker-nginx-curl
+    ports:
+      - containerPort: 80
+    volumeMounts:
+    - name: shared-logs
+      mountPath: /usr/local/nginx/html  # nginx-specific mount path
+
